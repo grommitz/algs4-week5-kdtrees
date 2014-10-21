@@ -10,13 +10,13 @@ import java.util.List;
 public class KdTree {
 
 	private Node root;
+	private int N;
 
 	private class Node implements Comparable<Point2D> {
 		Point2D p;
 		boolean isVertical;
 		Node left;
 		Node right;
-		int N;
 		@Override
 		public int compareTo(Point2D that) {
 			if (isVertical) {
@@ -25,10 +25,9 @@ public class KdTree {
 				return Point2D.Y_ORDER.compare(this.p, that);
 			}
 		}
-		public Node(Point2D p, boolean isVertical, int N) {
+		public Node(Point2D p, boolean isVertical) {
 			this.p = p;
 			this.isVertical = isVertical;
-			this.N = N;
 		}
 	}
 
@@ -39,26 +38,23 @@ public class KdTree {
 	}
 
 	public int size() {
-		return size(root); 
+		return N; 
 	}
 
-    private int size(Node x) {
-        if (x == null) return 0;
-        else return x.N;
-    }
-    
 	public void insert(Point2D p) {
 		root = insert(root, p, true);
+		N++;
 	}
 
 	private Node insert (Node n, Point2D p, boolean vertical) {
 		if (n == null) {
-			return new Node(p, vertical, 1);
+			return new Node(p, vertical);
 		} else {
 			int cmp = n.compareTo(p);
-			if (cmp <= 0) n.left  = insert(n.left, p, !vertical);
-			else n.right = insert(n.right, p, !vertical);
-	        n.N = 1 + size(n.left) + size(n.right);
+			if (cmp <= 0) 
+				n.left  = insert(n.left, p, !vertical);
+			else 
+				n.right = insert(n.right, p, !vertical);
 			return n;
 		}
 	}
@@ -67,55 +63,31 @@ public class KdTree {
 		return false; 
 	}
 
-	private List<Node> nodes() {
-		return nodes(root);
-	}
-	
-	private List<Node> nodes(Node n) {
-		List<Node> result = new ArrayList<>();
-		result.add(n);
-		if (n.left != null) result.addAll(nodes(n.left));
-		if (n.right != null) result.addAll(nodes(n.right));
-		return result;
-	}
-	
 	public void draw() {
-		StdDraw.setXscale(0.0, 1.0);
-		StdDraw.setYscale(0.0, 1.0);
-//		Stack<Node> stack = new Stack<>();
-		Node n = root;
-		double minX = 0.0;
-		double minY = 0.0;
-		double maxX = 1.0;
-		double maxY = 1.0;
-		draw(root, minX, minY, maxX, maxY);
+		draw(root, 0.0, 0.0, 1.0, 1.0);
 	}
-	
+
 	private void draw(Node n, double minX, double minY, double maxX, double maxY) {
 		StdDraw.setPenColor(Color.BLACK);
 		StdDraw.point(n.p.x(), n.p.y());
-		double splitX, splitY;
 		if (n.isVertical) {
 			StdDraw.setPenColor(Color.RED);
 			StdDraw.line(n.p.x(), minY, n.p.x(), maxY);
-			splitX = n.p.x();
 		} else {
 			StdDraw.setPenColor(Color.BLUE);
 			StdDraw.line(minX, n.p.y(), maxX, n.p.y());
 		}
 		if (n.left != null) {
-			if (n.isVertical)
-				draw(n.left, minX, minY, n.p.x(), maxY);
-			else
-				draw(n.left, minX, minY, maxX, n.p.y());
+			if (n.isVertical) maxX = n.p.x();
+			else              maxY = n.p.y();
+			draw(n.left, minX, maxX, minY, maxY);
 		}
 		if (n.right != null) {
-			if (n.isVertical)
-				draw(n.right, n.p.x(), maxX, minY, maxY);
-			else
-				draw(n.right, minX, n.p.y(), minY, maxY);
+			if (n.isVertical) minX = n.p.x();
+			else              minY = n.p.y();
+			draw(n.right, minX, maxX, minY, maxY);
 		}
-			
+
 	}
 
 	public Iterable<Point2D> range(RectHV rect) {
@@ -127,10 +99,5 @@ public class KdTree {
 		// a nearest neighbor in the set to point p; null if the set is empty 
 		return null;
 	}
-
-	public static void main(String[] args) {
-
-	}
-
 
 }
