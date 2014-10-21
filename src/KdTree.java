@@ -98,35 +98,36 @@ public class KdTree {
 
 	public Iterable<Point2D> range(RectHV rect) {
 		List<Point2D> result = new ArrayList<>();
-		RectHV searchArea = new RectHV(0.0, 0.0, 1.0, 1.0);
-		explore(root, rect, result, searchArea);
+		explore(root, rect, result);
 		return result;
 	}
 	
-	private void explore(final Node n, final RectHV rect, final List<Point2D> result, RectHV searchArea) {
+	private void explore(final Node n, final RectHV rect, final List<Point2D> result) {
 		if (rect.contains(n.p)) {
 			result.add(n.p);
 		}
 		if (n.left != null) {
-			searchArea = new RectHV(searchArea.xmin(), searchArea.ymin(), 
-						(n.isVertical ? n.p.x() : searchArea.xmax()), 
-						(n.isVertical ? searchArea.ymax() : n.p.y()));
-			if (rect.intersects(searchArea)) {
-				explore(n.left, rect, result, searchArea);
+			if (n.isVertical && n.p.x() >= rect.xmin()) {
+				//System.out.println("explore left from vertical " + n.p);
+				explore(n.left, rect, result);
+			} else if (!n.isVertical && n.p.y() >= rect.ymin()) {
+				//System.out.println("explore left from horizontal " + n.p);
+				explore(n.left, rect, result);
 			}
 		}
 		if (n.right != null) {
-			searchArea = new RectHV((n.isVertical ? n.p.x() : searchArea.xmax()), 
-									(n.isVertical ? searchArea.ymax() : n.p.y()),
-									searchArea.xmax(), searchArea.ymax());
-			if (rect.intersects(searchArea)) {
-				explore(n.right, rect, result, searchArea);
+			if (n.isVertical && n.p.x() <= rect.xmax()) {
+				//System.out.println("explore right from vertical " + n.p);
+				explore(n.right, rect, result);
+			} else if (!n.isVertical && n.p.y() <= rect.ymax()) {
+				//System.out.println("explore right from horizontal " + n.p);
+				explore(n.right, rect, result);
 			}
 		}
 	}
 
 	public Point2D nearest(Point2D p) {
-		// a nearest neighbor in the set to point p; null if the set is empty 
+		//TODO a nearest neighbor in the set to point p; null if the set is empty 
 		return null;
 	}
 
