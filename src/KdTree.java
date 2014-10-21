@@ -10,13 +10,17 @@ import java.util.List;
 public class KdTree {
 
 	private Node root;
-	private int N;
+	private int N = 0;
 
 	private class Node implements Comparable<Point2D> {
 		Point2D p;
 		boolean isVertical;
 		Node left;
 		Node right;
+		public Node(Point2D p, boolean isVertical) {
+			this.p = p;
+			this.isVertical = isVertical;
+		}
 		@Override
 		public int compareTo(Point2D that) {
 			if (isVertical) {
@@ -25,16 +29,12 @@ public class KdTree {
 				return Point2D.Y_ORDER.compare(this.p, that);
 			}
 		}
-		public Node(Point2D p, boolean isVertical) {
-			this.p = p;
-			this.isVertical = isVertical;
-		}
 	}
 
 	public KdTree() { }
 
 	public boolean isEmpty() {
-		return true;
+		return N == 0;
 	}
 
 	public int size() {
@@ -43,12 +43,12 @@ public class KdTree {
 
 	public void insert(Point2D p) {
 		root = insert(root, p, true);
-		N++;
 	}
 
-	private Node insert (Node n, Point2D p, boolean vertical) {
+	private Node insert(Node n, Point2D p, boolean vertical) {
 		if (n == null) {
 			//StdOut.println(p + ": adding " + (vertical?"vertical":"horizontal") + " node");
+			N++;
 			return new Node(p, vertical);
 		} else {
 			int cmp = n.compareTo(p);
