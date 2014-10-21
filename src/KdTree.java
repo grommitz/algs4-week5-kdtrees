@@ -48,13 +48,17 @@ public class KdTree {
 
 	private Node insert (Node n, Point2D p, boolean vertical) {
 		if (n == null) {
+			//StdOut.println(p + ": adding " + (vertical?"vertical":"horizontal") + " node");
 			return new Node(p, vertical);
 		} else {
 			int cmp = n.compareTo(p);
-			if (cmp <= 0) 
+			if (cmp > 0) {
+				//StdOut.println(p + ": going left at " + n.p);
 				n.left  = insert(n.left, p, !vertical);
-			else 
+			} else { 
+				//StdOut.println(p + ": going right at " + n.p);
 				n.right = insert(n.right, p, !vertical);
+			}
 			return n;
 		}
 	}
@@ -69,7 +73,9 @@ public class KdTree {
 
 	private void draw(Node n, double minX, double minY, double maxX, double maxY) {
 		StdDraw.setPenColor(Color.BLACK);
+		StdDraw.setPenRadius(0.01);
 		StdDraw.point(n.p.x(), n.p.y());
+		StdDraw.setPenRadius();
 		if (n.isVertical) {
 			StdDraw.setPenColor(Color.RED);
 			StdDraw.line(n.p.x(), minY, n.p.x(), maxY);
@@ -78,21 +84,45 @@ public class KdTree {
 			StdDraw.line(minX, n.p.y(), maxX, n.p.y());
 		}
 		if (n.left != null) {
-			if (n.isVertical) maxX = n.p.x();
-			else              maxY = n.p.y();
-			draw(n.left, minX, maxX, minY, maxY);
+			double mxx = n.isVertical ? n.p.x() : maxX;
+			double mxy = !n.isVertical ? n.p.y() : maxY;
+			draw(n.left, minX, minY, mxx, mxy);
 		}
 		if (n.right != null) {
-			if (n.isVertical) minX = n.p.x();
-			else              minY = n.p.y();
-			draw(n.right, minX, maxX, minY, maxY);
+			double mnx = n.isVertical ? n.p.x() : minX;
+			double mny = !n.isVertical ? n.p.y() : minY;
+			draw(n.right, mnx, mny, maxX, maxY);
 		}
 
 	}
 
 	public Iterable<Point2D> range(RectHV rect) {
-		// all points that are inside the rectangle 
-		return null;
+		List<Point2D> result = new ArrayList<>();
+		RectHV searchArea = new RectHV(0.0, 0.0, 1.0, 1.0);
+		explore(root, rect, result, searchArea);
+		return result;
+	}
+	
+	private void explore(final Node n, final RectHV rect, final List<Point2D> result, RectHV searchArea) {
+		if (rect.contains(n.p)) {
+			result.add(n.p);
+		}
+		if (n.left != null) {
+			searchArea = new RectHV(searchArea.xmin(), searchArea.ymin(), 
+						(n.isVertical ? n.p.x() : searchArea.xmax()), 
+						(n.isVertical ? searchArea.ymax() : n.p.y()));
+			if (rect.intersects(searchArea)) {
+				explore(n.left, rect, result, searchArea);
+			}
+		}
+		if (n.right != null) {
+			searchArea = new RectHV((n.isVertical ? n.p.x() : searchArea.xmax()), 
+									(n.isVertical ? searchArea.ymax() : n.p.y()),
+									searchArea.xmax(), searchArea.ymax());
+			if (rect.intersects(searchArea)) {
+				explore(n.right, rect, result, searchArea);
+			}
+		}
 	}
 
 	public Point2D nearest(Point2D p) {
