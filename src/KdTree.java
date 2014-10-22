@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class KdTree {
 
-	Node root;
+	private Node root;
 	private int N = 0;
 
 	static class Node implements Comparable<Point2D> {
@@ -140,10 +140,45 @@ public class KdTree {
 	}
 
 	public Point2D nearest(Point2D p) {
-		//TODO a nearest neighbor in the set to point p; null if the set is empty 
-		return null;
+		Point2D result = nearest(p, root, null, Double.POSITIVE_INFINITY);
+		return result;
 	}
 
+	private Point2D nearest(final Point2D queryPoint, Node n, Point2D result, double shortestDist) {
+		double dist = n.p.distanceSquaredTo(queryPoint);
+		System.out.println("looking at " + n.p + ", dist = " + dist);
+		if (result == null) {
+			result = n.p;
+			shortestDist = dist; 
+		} else {
+			if (dist < shortestDist) {
+				result = n.p;
+				shortestDist = dist; 
+				System.out.println("yay, closest so far!");
+			}
+		}
+		boolean searchLeft = false, searchRight = false;;
+		if (n.left != null) {
+			double ldist = n.left.rect.distanceSquaredTo(queryPoint);
+			if (ldist < shortestDist) {
+				searchLeft = true;
+			}
+		}
+		if (n.right != null) {
+			double rdist = n.right.rect.distanceSquaredTo(queryPoint);
+			if (rdist < shortestDist) {
+				searchRight = true;
+			}
+		}
+		if (searchLeft) {
+			result = nearest(queryPoint, n.left, result, shortestDist);
+		}
+		if (searchRight) {
+			result = nearest(queryPoint, n.right, result, shortestDist);
+		}
+		return result;
+	}
+	
 	public static void main(String[] args) {
 		KdTree tree = new KdTree();
 		tree.insert(new Point2D(0.5, 0.5));
