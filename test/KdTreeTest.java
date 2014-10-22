@@ -3,7 +3,9 @@ import static org.hamcrest.CoreMatchers.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -40,22 +42,31 @@ public class KdTreeTest {
 		tree.insert(new Point2D(0.8, 0.3));
 		//tree.draw();
 		//StdIn.readChar();
-		assertThat(pointsInRange(0.1, 0.1, 0.4, 0.4), is(1));
-		assertThat(pointsInRange(0.4, 0.4, 0.6, 0.6), is(1));
-		assertThat(pointsInRange(0.1, 0.1, 0.4, 0.9), is(2));
-		assertThat(pointsInRange(0.1, 0.6, 0.9, 0.9), is(2));
-		assertThat(pointsInRange(0.6, 0.1, 0.9, 0.9), is(2));
-		assertThat(pointsInRange(0.1, 0.1, 0.9, 0.4), is(2));
-		assertThat(pointsInRange(0.1, 0.1, 0.9, 0.6), is(3));
-		assertThat(pointsInRange(0.1, 0.1, 0.9, 0.9), is(5));
+		assertThat(numPointsInRange(0.1, 0.1, 0.4, 0.4), is(1));
+		assertThat(numPointsInRange(0.4, 0.4, 0.6, 0.6), is(1));
+		assertThat(numPointsInRange(0.1, 0.1, 0.4, 0.9), is(2));
+		assertThat(numPointsInRange(0.1, 0.6, 0.9, 0.9), is(2));
+		assertThat(numPointsInRange(0.6, 0.1, 0.9, 0.9), is(2));
+		assertThat(numPointsInRange(0.1, 0.1, 0.9, 0.4), is(2));
+		assertThat(numPointsInRange(0.1, 0.1, 0.9, 0.6), is(3));
+		assertThat(numPointsInRange(0.1, 0.1, 0.9, 0.9), is(5));
 	}
-	
-	private int pointsInRange(double xmin, double ymin, double xmax, double ymax) {
+
+	private int numPointsInRange(double xmin, double ymin, double xmax, double ymax) {
 		int points = 0;
 		Iterator<Point2D> i = tree.range(new RectHV(xmin, ymin, xmax, ymax)).iterator();
 		while (i.hasNext()) {
 			i.next();
 			points++;
+		}
+		return points;
+	}
+	
+	private List<Point2D> pointsInRange(double xmin, double ymin, double xmax, double ymax) {
+		List<Point2D> points = new ArrayList<>();
+		Iterator<Point2D> i = tree.range(new RectHV(xmin, ymin, xmax, ymax)).iterator();
+		while (i.hasNext()) {
+			points.add(i.next());
 		}
 		return points;
 	}

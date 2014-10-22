@@ -9,17 +9,19 @@ import java.util.List;
  */
 public class KdTree {
 
-	private Node root;
+	Node root;
 	private int N = 0;
 
-	private class Node implements Comparable<Point2D> {
-		Point2D p;
-		boolean isVertical;
+	static class Node implements Comparable<Point2D> {
+		final Point2D p;
+		final boolean isVertical;
 		Node left;
 		Node right;
-		public Node(Point2D p, boolean isVertical) {
+		final RectHV rect;
+		public Node(Point2D p, boolean isVertical, RectHV r) {
 			this.p = p;
 			this.isVertical = isVertical;
+			this.rect = r;
 		}
 		@Override
 		public int compareTo(Point2D that) {
@@ -42,22 +44,33 @@ public class KdTree {
 	}
 
 	public void insert(Point2D p) {
-		root = insert(root, p, true);
+		RectHV r = new RectHV(0.0, 0.0, 1.0, 1.0);
+		root = insert(root, p, true, r);
 	}
 
-	private Node insert(Node n, Point2D p, boolean vertical) {
+	private Node insert(Node n, Point2D p, boolean vertical, RectHV r) {
 		if (n == null) {
 			//StdOut.println(p + ": adding " + (vertical?"vertical":"horizontal") + " node");
 			N++;
-			return new Node(p, vertical);
+			return new Node(p, vertical, r);
 		} else {
 			int cmp = n.compareTo(p);
 			if (cmp > 0) {
 				//StdOut.println(p + ": going left at " + n.p);
-				n.left  = insert(n.left, p, !vertical);
+				if (n.isVertical) {
+					r = new RectHV(r.xmin(), r.ymin(), n.p.x(), r.ymax());
+				} else {
+					r = new RectHV(r.xmin(), r.ymin(), r.xmax(), n.p.y());
+				}
+				n.left  = insert(n.left, p, !vertical, r);
 			} else { 
 				//StdOut.println(p + ": going right at " + n.p);
-				n.right = insert(n.right, p, !vertical);
+				if (n.isVertical) {
+					r = new RectHV(n.p.x(), r.ymin(), r.xmax(), r.ymax());
+				} else {
+					r = new RectHV(r.xmin(), n.p.y(), r.xmax(), r.ymax());
+				}
+				n.right = insert(n.right, p, !vertical, r);
 			}
 			return n;
 		}
@@ -131,4 +144,17 @@ public class KdTree {
 		return null;
 	}
 
+	public static void main(String[] args) {
+		KdTree tree = new KdTree();
+		tree.insert(new Point2D(0.5, 0.5));
+		tree.insert(new Point2D(0.3, 0.3));
+		tree.insert(new Point2D(0.2, 0.2));
+		
+		Node p = tree.root.left.left;
+		if(p.rect.equals(new RectHV(0.0, 0.0, 0.5, 0.3))) {
+			StdOut.println("ok!");
+		} else {
+			StdOut.println("fail! rect = " + p.rect);
+		}
+	}
 }
