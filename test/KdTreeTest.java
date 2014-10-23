@@ -63,6 +63,17 @@ public class KdTreeTest {
 		assertThat(tree.nearest(new Point2D(0.44, 0.81)), is(new Point2D(0.4, 0.8)));
 	}
 	
+	@Test
+	public void testContains() {
+		for (double x = 0.0; x < 1.0; x += 0.1) {
+			for (double y = 0.0; y < 1.0; y += 0.1) {
+				tree.insert(new Point2D(round(x,1), round(y,1)));
+			}
+		}
+		assertThat(tree.contains(new Point2D(0.1, 0.4)), is(true));
+		assertThat(tree.contains(new Point2D(0.1, 0.41)), is(false));
+	}
+	
 	private int numPointsInRange(double xmin, double ymin, double xmax, double ymax) {
 		int points = 0;
 		Iterator<Point2D> i = tree.range(new RectHV(xmin, ymin, xmax, ymax)).iterator();

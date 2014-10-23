@@ -12,12 +12,12 @@ public class KdTree {
 	private Node root;
 	private int N = 0;
 
-	static class Node implements Comparable<Point2D> {
-		final Point2D p;
-		final boolean isVertical;
-		Node left;
-		Node right;
-		final RectHV rect;
+	private static class Node implements Comparable<Point2D> {
+		private final Point2D p;
+		private final boolean isVertical;
+		private Node left;
+		private Node right;
+		private final RectHV rect;
 		public Node(Point2D p, boolean isVertical, RectHV r) {
 			this.p = p;
 			this.isVertical = isVertical;
@@ -77,9 +77,19 @@ public class KdTree {
 	}
 
 	public boolean contains(Point2D p) {
-		return false; 
+		return contains(p, root);
 	}
 
+	private boolean contains(Point2D p, Node n) {
+		if (n == null) return false;
+		if (n.p.equals(p)) return true;
+		if (n.isVertical) {
+			return contains(p, (p.x() < n.p.x() ? n.left : n.right));
+		} else {
+			return contains(p, (p.y() < n.p.y() ? n.left : n.right));
+		}
+	}
+	
 	public void draw() {
 		draw(root, 0.0, 0.0, 1.0, 1.0);
 	}
@@ -147,7 +157,6 @@ public class KdTree {
 	private Point2D nearest(final Point2D queryPoint, Node n, Point2D result) {
 		double dist = n.p.distanceSquaredTo(queryPoint);
 		double shortestDist;
-		System.out.println("looking at " + n.p + ", dist = " + dist);
 		if (result == null) {
 			result = n.p;
 			shortestDist = dist; 
@@ -156,10 +165,9 @@ public class KdTree {
 			if (dist < shortestDist) {
 				result = n.p;
 				shortestDist = dist; 
-				System.out.println("yay, closest so far!");
 			}
 		}
-		boolean searchLeft = false, searchRight = false;;
+		boolean searchLeft = false, searchRight = false;
 		if (n.left != null) {
 			double ldist = n.left.rect.distanceSquaredTo(queryPoint);
 			if (ldist < shortestDist) {
@@ -182,14 +190,12 @@ public class KdTree {
 				leftFirst = false;
 			}
 		}
-		
 		if (leftFirst) {
 			if (searchLeft)
 				result = nearest(queryPoint, n.left, result);
 			if (searchRight)
 				result = nearest(queryPoint, n.right, result);
-		}
-		else {
+		} else {
 			if (searchRight)
 				result = nearest(queryPoint, n.right, result);
 			if (searchLeft)
@@ -205,7 +211,7 @@ public class KdTree {
 		tree.insert(new Point2D(0.2, 0.2));
 		
 		Node p = tree.root.left.left;
-		if(p.rect.equals(new RectHV(0.0, 0.0, 0.5, 0.3))) {
+		if (p.rect.equals(new RectHV(0.0, 0.0, 0.5, 0.3))) {
 			StdOut.println("ok!");
 		} else {
 			StdOut.println("fail! rect = " + p.rect);
