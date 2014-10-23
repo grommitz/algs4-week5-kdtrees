@@ -140,17 +140,19 @@ public class KdTree {
 	}
 
 	public Point2D nearest(Point2D p) {
-		Point2D result = nearest(p, root, null, Double.POSITIVE_INFINITY);
+		Point2D result = nearest(p, root, null);
 		return result;
 	}
 
-	private Point2D nearest(final Point2D queryPoint, Node n, Point2D result, double shortestDist) {
+	private Point2D nearest(final Point2D queryPoint, Node n, Point2D result) {
 		double dist = n.p.distanceSquaredTo(queryPoint);
+		double shortestDist;
 		System.out.println("looking at " + n.p + ", dist = " + dist);
 		if (result == null) {
 			result = n.p;
 			shortestDist = dist; 
 		} else {
+			shortestDist = result.distanceSquaredTo(queryPoint);
 			if (dist < shortestDist) {
 				result = n.p;
 				shortestDist = dist; 
@@ -170,11 +172,28 @@ public class KdTree {
 				searchRight = true;
 			}
 		}
-		if (searchLeft) {
-			result = nearest(queryPoint, n.left, result, shortestDist);
+		boolean leftFirst = true;
+		if (n.isVertical) {
+			if (queryPoint.x() > n.p.x()) {
+				leftFirst = false;
+			}
+		} else {
+			if (queryPoint.y() > n.p.y()) {
+				leftFirst = false;
+			}
 		}
-		if (searchRight) {
-			result = nearest(queryPoint, n.right, result, shortestDist);
+		
+		if (leftFirst) {
+			if (searchLeft)
+				result = nearest(queryPoint, n.left, result);
+			if (searchRight)
+				result = nearest(queryPoint, n.right, result);
+		}
+		else {
+			if (searchRight)
+				result = nearest(queryPoint, n.right, result);
+			if (searchLeft)
+				result = nearest(queryPoint, n.left, result);
 		}
 		return result;
 	}
